@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8881:8881"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8881"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
