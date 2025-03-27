@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG to GeoJSON 转换器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"],
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .control-points {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SVG to GeoJSON 转换器</h1>
+        <form id="convertForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">选择SVG文件：</label>
+                <input type="file" id="file" name="file" accept=".svg" required>
+            </div>
+
+            <h3>控制点设置</h3>
+            <div class="control-points">
+                <div class="form-group">
+                    <label for="control_x">SVG X坐标：</label>
+                    <input type="number" id="control_x" name="control_x" value="185.39" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="control_y">SVG Y坐标：</label>
+                    <input type="number" id="control_y" name="control_y" value="289.54" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="control_lon">经度：</label>
+                    <input type="number" id="control_lon" name="control_lon" value="-117.716728" step="0.000001" required>
+                </div>
+                <div class="form-group">
+                    <label for="control_lat">纬度：</label>
+                    <input type="number" id="control_lat" name="control_lat" value="33.683458" step="0.000001" required>
+                </div>
+            </div>
+
+            <h3>缩放比例</h3>
+            <div class="control-points">
+                <div class="form-group">
+                    <label for="scale_x">X轴缩放：</label>
+                    <input type="number" id="scale_x" name="scale_x" value="0.0000163" step="0.0000001" required>
+                </div>
+                <div class="form-group">
+                    <label for="scale_y">Y轴缩放：</label>
+                    <input type="number" id="scale_y" name="scale_y" value="-0.0000127" step="0.0000001" required>
+                </div>
+            </div>
+
+            <button type="submit">转换</button>
+        </form>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        document.getElementById('convertForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || '转换失败');
+                }
+
+                // 获取文件名
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const filename = contentDisposition
+                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+                    : 'converted.json';
+
+                // 下载文件
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                document.getElementById('error').textContent = '';
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
