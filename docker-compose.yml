@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  python:
+    container_name: forgeojson
+    hostname: forgeojson
+    restart: always 
+    image: python:3.12-slim
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app:rw
+    # command:
+    #   - /bin/bash
+    #   - -c
+    #   - >
+    #     echo "Building build..."
+    #     && tail -f /dev/null
+networks:
+  metanet1:
+    driver: bridge
