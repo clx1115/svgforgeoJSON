@@ -4,34 +4,27 @@ from svgpathtools import svg2paths
 from geojson import Feature, FeatureCollection, Polygon, LineString
 import json
 
-def transform_coordinates(x, y, control_points=None):
+def transform_coordinates(x, y, control_point=None, scale=None):
     """
-    使用仿射变换转换坐标
+    使用简化的变换方法转换坐标
     
     Args:
         x, y: SVG坐标
-        control_points: 控制点，格式为 [(x1,y1,lon1,lat1), (x2,y2,lon2,lat2)]
+        control_point: 控制点，格式为 (x,y,lon,lat)，表示SVG上的一个点及其对应的经纬度
+        scale: 缩放比例，格式为 (scale_x, scale_y)，表示x和y方向上的缩放比例
     """
-    if control_points is None:
+    if control_point is None:
         # 默认控制点，将SVG坐标映射到合理的经纬度范围
-        control_points = [
-            (0, 0, 116.3, 39.9),      # 左上角点
-            (1000, 1000, 116.4, 39.8)  # 右下角点
-        ]
+        control_point = (185.39, 289.54, -117.716728, 33.683458)  # 左上角点
+        scale = (0.0000163, -0.0000127)  # 默认缩放比例
     
-    # 提取控制点
-    x1, y1, lon1, lat1 = control_points[0]
-    x2, y2, lon2, lat2 = control_points[1]
-    
-    # 计算仿射变换参数
-    scale_x = (lon2 - lon1) / (x2 - x1) if x2 != x1 else 0
-    scale_y = (lat2 - lat1) / (y2 - y1) if y2 != y1 else 0
-    offset_x = lon1 - x1 * scale_x
-    offset_y = lat1 - y1 * scale_y
+    # 提取控制点和缩放比例
+    x1, y1, lon1, lat1 = control_point
+    scale_x, scale_y = scale
     
     # 转换坐标
-    lon = x * scale_x + offset_x
-    lat = y * scale_y + offset_y
+    lon = lon1 + (x - x1) * scale_x
+    lat = lat1 + (y - y1) * scale_y
     
     return lon, lat
 
@@ -48,14 +41,15 @@ def extract_path_points(path):
         points.append((end_x, end_y))
     return points
 
-def svg_to_geojson(svg_file, output_file, control_points=None):
+def svg_to_geojson(svg_file, output_file, control_point=None, scale=None):
     """
     将SVG转换为GeoJSON
     
     Args:
         svg_file (str): SVG文件路径
         output_file (str): 输出JSON文件路径
-        control_points: 控制点，用于坐标转换
+        control_point: 控制点，用于坐标转换
+        scale: 缩放比例，用于坐标转换
     """
     try:
         # 解析SVG文件
@@ -71,7 +65,7 @@ def svg_to_geojson(svg_file, output_file, control_points=None):
             # 转换为地理坐标
             geo_points = []
             for x, y in svg_points:
-                lon, lat = transform_coordinates(x, y, control_points)
+                lon, lat = transform_coordinates(x, y, control_point, scale)
                 geo_points.append([lon, lat])
             
             # 移除重复的连续点
@@ -115,5 +109,5 @@ if __name__ == "__main__":
     if not output_file.endswith('.json'):
         output_file = os.path.splitext(output_file)[0] + '.json'
     
-    # 使用默认控制点进行转换
+    # 使用默认控制点和缩放比例进行转换
     svg_to_geojson(svg_file, output_file)
