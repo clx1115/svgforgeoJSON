@@ -1,20 +1,16 @@
-version: '3.9'
+version: '3.8'
 services:
-  python:
+  web:
+    build: .
     container_name: forgeojson
-    hostname: forgeojson
-    restart: always 
-    image: python:3.12-slim
+    restart: always
     ports:
       - "5001:5000"
     volumes:
-      - .:/app:rw
-    # command:
-    #   - /bin/bash
-    #   - -c
-    #   - >
-    #     echo "Building build..."
-    #     && tail -f /dev/null
+      - ./uploads:/app/uploads
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
 networks:
   metanet1:
     driver: bridge

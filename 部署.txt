@@ -1,3 +1,84 @@
+ForgeOJSON Docker部署说明
+
+1. 安装Docker和Docker Compose
+   Ubuntu系统执行：
+   ```bash
+   # 安装Docker
+   sudo apt update
+   sudo apt install docker.io
+   sudo systemctl start docker
+   sudo systemctl enable docker
+   
+   # 安装Docker Compose
+   sudo apt install docker-compose
+   ```
+
+2. 创建项目目录
+   ```bash
+   mkdir -p ~/forgeojson
+   cd ~/forgeojson
+   ```
+
+3. 上传项目文件
+   确保以下文件都在项目目录中：
+   - Dockerfile
+   - docker-compose.yml
+   - requirements.txt
+   - app.py
+   - svg_to_geojson.py
+   - templates/（目录及其内容）
+
+4. 构建和启动容器
+   ```bash
+   # 构建镜像并启动容器
+   sudo docker-compose up -d --build
+   ```
+
+5. 查看运行状态
+   ```bash
+   # 查看容器状态
+   sudo docker ps
+   
+   # 查看容器日志
+   sudo docker logs forgeojson
+   ```
+
+6. 访问应用
+   打开浏览器访问：http://服务器IP:5001
+
+常用维护命令：
+
+1. 重启服务
+   ```bash
+   sudo docker-compose restart
+   ```
+
+2. 停止服务
+   ```bash
+   sudo docker-compose down
+   ```
+
+3. 查看日志
+   ```bash
+   sudo docker logs -f forgeojson
+   ```
+
+4. 更新应用
+   ```bash
+   # 拉取最新代码后执行
+   sudo docker-compose down
+   sudo docker-compose up -d --build
+   ```
+
+注意事项：
+1. 确保服务器的5000端口已开放
+2. 上传的文件会保存在./uploads目录中
+3. 如果需要修改端口，编辑docker-compose.yml中的ports部分
+4. 如果遇到权限问题，确保uploads目录有正确的权限：
+   ```bash
+   sudo chown -R 1000:1000 uploads/
+   ```
+
 docker-compose up -d
 
 docker exec -it forgeojson bash
